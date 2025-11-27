@@ -14,28 +14,25 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 error Raffile_SendMoreToEnterRaffile();
 error Raffile_TransferFaild();
 error Raffile__NotOPen();
+error Raffile__UpkeepNotNeeded();
+
 //contract lick the inherit contract and read through it
 contract Raffile is VRFConsumerBaseV2Plus {
+    //type deleration
 
-//type deleration
+    //enum allow us to create basic custom type
+    enum RaffileState {
+        Open, //0
+        Calculating // 1
+    }
 
-//enum allow us to create basic custom type
-enum RaffileState {Open, //0
-
- Calculating // 1
-  }
-
-
-   
-   
-   
     //state variables
     address private s_recentWinner;
     uint16 private constant REQUEST_CONFARMATION = 3;
     uint32 private constant NUM_WORDS = 1;
     uint256 private immutable I_enteranceFee;
     uint256 private immutable i_interval;
-    uint256 private  s_lastTimeStamp;
+    uint256 private s_lastTimeStamp;
     bytes32 private immutable i_keyHash;
     uint256 private immutable i_subscriptionId;
     uint32 private immutable i_callbackGasLimit;
@@ -48,7 +45,7 @@ enum RaffileState {Open, //0
     //the fronted listen to it
     //the reason we dont use storage var is because they are expensive
     event RaffileEntered(address indexed player);
-    event WinerPicked(address indexed winner)
+    event WinerPicked(address indexed winner);
 
     // the contract we inherit from have contructor that accept so we need to pass it in
     //like this
@@ -77,28 +74,61 @@ enum RaffileState {Open, //0
             revert Raffile_SendMoreToEnterRaffile();
         }
 
-        if(s_raffleState !=  RaffileState.Open){
+        if (s_raffleState != RaffileState.Open) {
             revert Raffile__NotOPen();
         }
         s_players.push(payable(msg.sender));
         emit RaffileEntered(msg.sender);
     }
 
+    /**AUtomation
+     *
+     * checkupkeed fn is the condition that the oracles use to see if it time to perfom or call a fn again
+     * perform upkeep is the action the the oracles  those when it times
+     */
+
+    /**
+     * @dev this is the fn that chainlink noodes call to see
+     * if the lottery is ready to have a winner picked
+     * the following should be true in  other for the upkeep to be true;
+     * the time interval has pass between the raffle run
+     * the lottery is open
+     * the contract has eth
+     * implicitly your subscription has Link
+     * @param -igonored
+     * @return upkeepNeeded -- true if time to restart lottery
+     * @return ignored
+     */
+
+    function checkUpKeep(
+        bytes memory /* callData */
+    ) public view returns (bool upKeepNeeded, bytes memory /* performData */) {
+
+      bool timeHasPassed = (block.timestamp - s_lastTimeStamp) >= i_interval;  
+      bool isOpen = s_raffleState == RaffileState.Open;
+      bool hasBalance = address(this).balance > 0;
+      bool hasPlayers = s_players.length > 0;
+      upKeepNeeded = timeHasPassed && isOpen && hasBalance && hasPlayers;
+
+
+return (upKeepNeeded, '');
+
+
+
+    }  
+
     //get a random number
     //use random number to pick a winner
 
+// this will be automatically be called by oracle
+    function performUpkeep() external {
+        
+  (bool upKeepNeeded,) = checkUpKeep('');
 
+  if(!upKeepNeeded){
+    revert Raffile__UpkeepNotNeeded();
+  }
 
-
-
-
-
-    function pickWinner() external {
-
-       
-        if ((block.timestamp - s_lastTimeStamp) < i_interval) {
-            revert();
-        }
         s_raffleState = RaffileState.Calculating;
 
         // this below is gotton from a library we imported
@@ -118,50 +148,49 @@ enum RaffileState {Open, //0
                     VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
                 )
             });
+//  uint256 requestId = 
 
-          uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+//the contract we inherit from have this svrf so we pass it the sturct
+       s_vrfCoordinator.requestRandomWords(request);
+
+       //this fn call the fullfin fn
     }
 
+    /**
+     * wen writing a fn always keep CEI: Chekcs, effect,interaction
+     * checks eg require if at the top
+     * then effect(internal contract state)
+     * interaction (eternal contrac interaction )
+     * like we write in below code
+     */
 
-
-/**
- * wen writing a fn always keep CEI: Chekcs, effect,interaction
- * checks eg require if at the top
- * then effect(internal contract state)
- * interaction (eternal contrac interaction )
- * like we write in below code
- */
-
-
-function fulfillRandomWords(
+    function fulfillRandomWords(
         uint256 requestId,
         uint256[] calldata randomWords
     ) internal override {
+        // the oracale return array of numbers eg this long 6795465894930204588588493992939393993229
 
+        //so we % by eg 10 then we use the remender to pick a random winner
 
-// the oracale return array of numbers eg this long 6795465894930204588588493992939393993229
+        /** effect internal contract state */
+        uint256 indexOfWinner = randomWords[0] % s_players.length;
+        address recentWinner = s_players[indexOfWinner];
+        s_recentWinner = recentWinner;
+        emit WinerPicked(recentWinner);
 
-//so we % by eg 10 then we use the remender to pick a random winner
+        /**Interaction (EXternal contract Interaction) */
 
-/** effect internal contract state */
-uint256 indexOfWinner = randomWords[0] % s_players.length;
-address payable recentWinner = s_players[indexOfWinner];
-s_recentWinner = recentWinner;
-emit WinerPicked(recentWinner);
+        (bool success, ) = payable(recentWinner).call{
+            value: address(this).balance
+        }("");
 
+        if (!success) {
+            revert Raffile_TransferFaild();
+        }
 
-/**Interaction (EXternal contract Interaction) */
-
-(bool success,) = recentWinner.call{value:address(this).balance}("");
-
-if(!success){
-    revert Raffile_TransferFaild();
-}
-
-s_raffleState = RaffileState.Open;
-s_players = new address[](0);
-s_lastTimeStamp = block.timestamp;
-
+        s_raffleState = RaffileState.Open;
+        s_players = new address[](0);
+        s_lastTimeStamp = block.timestamp;
     }
 
     function getEnteranceFee() public view returns (uint256) {
