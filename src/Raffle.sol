@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.19;
 
 //for anything u dont understand check chain link doc
 
@@ -87,18 +87,18 @@ contract Raffile is VRFConsumerBaseV2Plus {
      * perform upkeep is the action the the oracles  those when it times
      */
 
-    /**
-     * @dev this is the fn that chainlink noodes call to see
-     * if the lottery is ready to have a winner picked
-     * the following should be true in  other for the upkeep to be true;
-     * the time interval has pass between the raffle run
-     * the lottery is open
-     * the contract has eth
-     * implicitly your subscription has Link
-     * @param -igonored
-     * @return upkeepNeeded -- true if time to restart lottery
-     * @return ignored
-     */
+    
+    //  * @dev this is the fn that chainlink noodes call to see
+    //  * if the lottery is ready to have a winner picked
+    //  * the following should be true in  other for the upkeep to be true;
+    //  * the time interval has pass between the raffle run
+    //  * the lottery is open
+    //  * the contract has eth
+    //  * implicitly your subscription has Link
+    //  * @param -igonored
+    //  * @return upkeepNeeded -- true if time to restart lottery
+    //  * @return ignored
+     
 
     function checkUpKeep(
         bytes memory /* callData */
