@@ -55,7 +55,7 @@ function getConfigBYChainId(uint256 chainId) public returns (NetWorkConfig memor
     return networkConfigs[chainId];
  }
  else if(chainId == LOCAL_CHAIN_ID){
-    getOrCreateAnvilEthConfig();
+  return   getOrCreateAnvilEthConfig();
 
  }
  else{

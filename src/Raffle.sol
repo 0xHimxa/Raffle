@@ -11,13 +11,16 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 
 //custom error
 
-error Raffile_SendMoreToEnterRaffile();
+
 error Raffile_TransferFaild();
 error Raffile__NotOPen();
 error Raffile__UpkeepNotNeeded();
 
 //contract lick the inherit contract and read through it
 contract Raffile is VRFConsumerBaseV2Plus {
+
+error Raffile_SendMoreToEnterRaffile();
+
     //type deleration
 
     //enum allow us to create basic custom type
@@ -196,4 +199,14 @@ return (upKeepNeeded, '');
     function getEnteranceFee() public view returns (uint256) {
         return I_enteranceFee;
     }
+
+    function getRaffileState() public view returns (RaffileState) {
+        return s_raffleState;
+    }
+
+    function getPlayers(uint256 index) public view returns (address) {
+        return s_players[index];
+    }
+
+
 }

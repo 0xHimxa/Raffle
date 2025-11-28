@@ -5,13 +5,7 @@ import {Script} from 'forge-std/Script.sol';
 import {Raffile} from 'src/Raffle.sol';
 import {HelperConfig} from './HelperConfig.s.sol';
 contract DeployRaffile is Script{
-    function run()external{
-
-    } 
-
-
-    function deployContract() external returns(Raffile,HelperConfig){
-
+    function run()external   returns(Raffile,HelperConfig){
 HelperConfig helperConfig = new HelperConfig();
 
 //local -> deploy mocks,get local config
@@ -29,6 +23,12 @@ Raffile raffile = new Raffile(
 );
 vm.stopBroadcast();
 return(raffile,helperConfig);
+    } 
+
+
+    function deployContract() external returns(Raffile,HelperConfig){
+
+
 
 
     }
