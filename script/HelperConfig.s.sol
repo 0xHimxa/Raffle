@@ -14,8 +14,10 @@ abstract contract CodeConstant {
  //Link / Eth price
     int256  public MOCK_WEI_PER_UINT_LINK = 4e15;
    uint256 public constant ETH_SEPOLIA_CHAIN_ID = 11155111;
-   uint256 public constant LOCAL_CHAIN_ID = 31337;
+   uint256 public constant LOCAL_CHAIN_ID = 31337;  
+   address  public constant FOUNDRY_DEAFULTSENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 }
+
 
 
 
@@ -34,8 +36,9 @@ error HelperConfig_InvalidChainId();
     address vrfCoordination;
     bytes32 gaslane;
     uint32 callbackGasLimit;
-    uint32 subscriptionId;
+    uint256 subscriptionId;
     address link;
+    address account;
 
   }
 
@@ -83,7 +86,9 @@ callbackGasLimit: 50000,
 //if we dont have a sub id our script will auto create one 
 subscriptionId: 0,
 //sepo link address so we can funding likr they do in da vid
-link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
+link: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
+// did not ended up using this account
+account:   0xA85926f9598AA43A2D8f24246B5e7886C4A5FeEc
     });
  }
 
@@ -113,11 +118,13 @@ localNetworkConfig = NetWorkConfig({
 callbackGasLimit: 50000,
 //if we dont have a sub id our script will auto create one 
 subscriptionId: 0,
-link: address(linktoken)
+link: address(linktoken),
+account: FOUNDRY_DEAFULTSENDER
 
 
 
 });
+vm.deal(FOUNDRY_DEAFULTSENDER, 100 ether);
 return localNetworkConfig;
 
  }
