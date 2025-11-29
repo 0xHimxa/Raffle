@@ -13,13 +13,13 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 
 
 error Raffile_TransferFaild();
-error Raffile__NotOPen();
 error Raffile__UpkeepNotNeeded();
 
 //contract lick the inherit contract and read through it
 contract Raffile is VRFConsumerBaseV2Plus {
 
 error Raffile_SendMoreToEnterRaffile();
+error Raffile__NotOPen();
 
     //type deleration
 

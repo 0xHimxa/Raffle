@@ -5,7 +5,7 @@ import {Script} from 'forge-std/Script.sol';
 //we import our mock from chain link depende we have
 
 import {VRFCoordinatorV2_5Mock} from '@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol';
-
+import { LinkToken} from 'test/mocks/LinkToken.sol';
 
 abstract contract CodeConstant {
     /** VRF Mock Values */
@@ -35,6 +35,7 @@ error HelperConfig_InvalidChainId();
     bytes32 gaslane;
     uint32 callbackGasLimit;
     uint32 subscriptionId;
+    address link;
 
   }
 
@@ -80,7 +81,9 @@ function getConfig() public  returns(NetWorkConfig memory){
         gaslane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
 callbackGasLimit: 50000,
 //if we dont have a sub id our script will auto create one 
-subscriptionId: 0
+subscriptionId: 0,
+//sepo link address so we can funding likr they do in da vid
+link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
     });
  }
 
@@ -96,6 +99,9 @@ if(localNetworkConfig.vrfCoordination != address(0)){
 
 vm.startBroadcast();
  VRFCoordinatorV2_5Mock vrfCoordinatorV2_5Mock = new VRFCoordinatorV2_5Mock(MOCK_BASE_FEE,MOCK_GAS_PRICE_LINK,MOCK_WEI_PER_UINT_LINK);
+// here we deploy our link token to anvil chain, for funding
+LinkToken linktoken = new LinkToken();
+
 vm.stopBroadcast();
 
 localNetworkConfig = NetWorkConfig({
@@ -106,7 +112,10 @@ localNetworkConfig = NetWorkConfig({
         gaslane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
 callbackGasLimit: 50000,
 //if we dont have a sub id our script will auto create one 
-subscriptionId: 0   
+subscriptionId: 0,
+link: address(linktoken)
+
+
 
 });
 return localNetworkConfig;

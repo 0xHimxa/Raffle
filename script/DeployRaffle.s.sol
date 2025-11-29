@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import {Script} from 'forge-std/Script.sol';
 import {Raffile} from 'src/Raffle.sol';
 import {HelperConfig} from './HelperConfig.s.sol';
+import {CreateSubscription} from './interaction.s.sol';
 contract DeployRaffile is Script{
     function run()external   returns(Raffile,HelperConfig){
 HelperConfig helperConfig = new HelperConfig();
@@ -12,6 +13,19 @@ HelperConfig helperConfig = new HelperConfig();
 //sepolia -> get sepolia config
 HelperConfig.NetWorkConfig memory config = helperConfig.getConfig();
 
+
+if(config.subscriptionId == 0){
+ CreateSubscription createSubscription = new CreateSubscription();
+ (config.subscriptionId,config.vrfCoordination) = createSubscription.createSubscription(config.vrfCoordination);
+    
+}
+
+
+
+
+
+
+
 vm.startBroadcast();
 Raffile raffile = new Raffile(
     config.entranceFee,
@@ -19,7 +33,7 @@ Raffile raffile = new Raffile(
     config.vrfCoordination,
     config.gaslane,
     config.callbackGasLimit,
-    config.subscriptionId
+   config.subscriptionId
 );
 vm.stopBroadcast();
 return(raffile,helperConfig);

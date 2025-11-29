@@ -91,6 +91,25 @@ raffle.enterRaffile{value: enteranceFee}();
 }
 
 
+function testDontAllowToEnterRaffileWhilePickingWinner()external{
+
+vm.prank(PLAYER);
+
+raffle.enterRaffile{value: enteranceFee}();
+//vm.warp allow us to time travel or manipulate the time to reach 
+//the realse time so we can test it
+vm.warp(block.timestamp + interval + 1);
+// this one we wait for block confarmation // to jump to certain block eg
+// if token can be relsease after 500mines block we can jump to that with roll
+vm.roll(block.number + 1);
+
+raffle.performUpkeep();
+
+vm.expectRevert(Raffile.Raffile__NotOPen.selector);
+raffle.enterRaffile{value: enteranceFee}();
+
+}
+
 
 
 }
