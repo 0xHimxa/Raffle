@@ -49,7 +49,7 @@ error Raffile__NotOPen();
     //the reason we dont use storage var is because they are expensive
     event RaffileEntered(address indexed player);
     event WinerPicked(address indexed winner);
-    event RequestRaffileWinner(uint256 requestId);
+    event RequestRaffileWinner(uint256 indexed requestId);
 
     // the contract we inherit from have contructor that accept so we need to pass it in
     //like this

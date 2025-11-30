@@ -7,6 +7,7 @@ import {Raffile} from 'src/Raffle.sol';
 import {HelperConfig} from 'script/HelperConfig.s.sol';
 import {Vm} from 'forge-std/Vm.sol';
 
+import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 
 
 
@@ -26,6 +27,8 @@ uint256 public constant STARTING_PLAYER_BALANCE = 10 ether;
 
   event RaffileEntered(address indexed player);
     event WinerPicked(address indexed winner);
+    event RequestRaffileWinner(uint256 indexed requestId);
+
 
 
 function setUp()external {
@@ -187,9 +190,13 @@ _;
 
 
 
-function testPerformUpKeepUpdateRaffleStateAndEmitRequestedId()external raffleEntered{
+function testPerformUpKeepUpdateRaffleStateAndEmitRequestedId()external {
 
+ vm.prank(PLAYER); 
 
+raffle.enterRaffile{value: enteranceFee}();
+vm.warp(block.timestamp + interval + 1);
+vm.roll(block.number + 1);
 
 //vm.recoardlogs = record  and stick them to an array what ever log of event that is been emitter below it
 
@@ -208,22 +215,39 @@ Vm.Log[] memory enteries = vm.getRecordedLogs();
 //to get our request id from the log
 
 //the first index are reserved for vrf so we start from 1
-bytes32 requestId = enteries[1].data[1];
+bytes32 requestId = enteries[1].topics[1];
 //console.log(requestId);
 
 
 Raffile.RaffileState s_raffleState = raffle.getRaffileState();
 
 assert(uint256(requestId) > 0);
-assert(s_raffleState == Raffile.RaffileState.Calculating);
+assert(uint256(s_raffleState) == 1);
+
+
+
+
+
 
 
 
 }
 
+// fuzz test
 
 
+function testFulfillrandomWordsCanOnlyBeCalledAfterPerformUpkeep(uint256 requestId)external raffleEntered{
 
+// remember perform upkeep call fullfill random words in thier code
+
+vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+
+//the the full we want to make sure that not any time of input number will work
+
+// that why we use  fuzz test  to test different number  first pass it to param then to the fn
+VRFCoordinatorV2_5Mock(vrfCodination).fulfillRandomWords(requestId,address(raffle));
+
+}
 
 
 
