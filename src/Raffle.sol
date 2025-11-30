@@ -13,10 +13,10 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 
 
 error Raffile_TransferFaild();
-error Raffile__UpkeepNotNeeded();
 
 //contract lick the inherit contract and read through it
 contract Raffile is VRFConsumerBaseV2Plus {
+error Raffile__UpkeepNotNeeded(uint256,uint256);
 
 error Raffile_SendMoreToEnterRaffile();
 error Raffile__NotOPen();
@@ -49,6 +49,7 @@ error Raffile__NotOPen();
     //the reason we dont use storage var is because they are expensive
     event RaffileEntered(address indexed player);
     event WinerPicked(address indexed winner);
+    event RequestRaffileWinner(uint256 requestId);
 
     // the contract we inherit from have contructor that accept so we need to pass it in
     //like this
@@ -129,7 +130,7 @@ return (upKeepNeeded, '');
   (bool upKeepNeeded,) = checkUpKeep('');
 
   if(!upKeepNeeded){
-    revert Raffile__UpkeepNotNeeded();
+    revert Raffile__UpkeepNotNeeded(address(this).balance,s_players.length);
   }
 
         s_raffleState = RaffileState.Calculating;
@@ -151,12 +152,13 @@ return (upKeepNeeded, '');
                     VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
                 )
             });
-//  uint256 requestId = 
-
 //the contract we inherit from have this svrf so we pass it the sturct
-       s_vrfCoordinator.requestRandomWords(request);
+
+ uint256 requestId =  s_vrfCoordinator.requestRandomWords(request);
 
        //this fn call the fullfin fn
+       emit RequestRaffileWinner(requestId);
+
     }
 
     /**

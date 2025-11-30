@@ -5,6 +5,8 @@ import {Test,console} from 'forge-std/Test.sol';
 import {DeployRaffile} from 'script/DeployRaffle.s.sol';
 import {Raffile} from 'src/Raffle.sol';
 import {HelperConfig} from 'script/HelperConfig.s.sol';
+import {Vm} from 'forge-std/Vm.sol';
+
 
 
 
@@ -109,6 +111,119 @@ vm.expectRevert(Raffile.Raffile__NotOPen.selector);
 raffle.enterRaffile{value: enteranceFee}();
 
 }
+ function testcheckUpkeepReturnsTrue() external{
+  vm.prank(PLAYER);
+
+raffle.enterRaffile{value: enteranceFee}();
+vm.warp(block.timestamp + interval + 1);
+vm.roll(block.number + 1);
+
+(bool upkeep,) = raffle.checkUpKeep('');
+
+assert(upkeep == true);
+ }
+
+
+
+ function testcheckUpkeepReturnsfalse() external{
+
+
+
+(bool upkeep,) = raffle.checkUpKeep('');
+vm.warp(block.timestamp + interval + 1);
+vm.roll(block.number + 1);
+
+assert(!upkeep);
+ }
+
+
+
+ function testPerformUpkeepCanOnlyRunIfCheckUpkeepIsTrue()external{
+ vm.prank(PLAYER);
+
+raffle.enterRaffile{value: enteranceFee}();
+vm.warp(block.timestamp + interval + 1);
+vm.roll(block.number + 1);
+
+// we can leave it like this if it pass i wil work else it will fail
+raffle.performUpkeep();
+
+
+ }
+
+function testPerformUpkeepRevertIfCheckUpkeepIsFalse()external {
+ vm.prank(PLAYER);
+
+raffle.enterRaffile{value: enteranceFee}();
+
+uint256 balance = address(raffle).balance;
+
+uint256 numplayers = 1;
+//we use this abi stuff if our custom error accept param
+vm.expectRevert(abi.encodeWithSelector(Raffile.Raffile__UpkeepNotNeeded.selector,balance,numplayers));
+
+
+raffle.performUpkeep();
+
+
+
+
+
+
+
+}
+
+
+modifier raffleEntered(){
+   vm.prank(PLAYER);
+
+raffle.enterRaffile{value: enteranceFee}();
+vm.warp(block.timestamp + interval + 1);
+vm.roll(block.number + 1);
+_;
+}
+
+
+
+
+
+function testPerformUpKeepUpdateRaffleStateAndEmitRequestedId()external raffleEntered{
+
+
+
+//vm.recoardlogs = record  and stick them to an array what ever log of event that is been emitter below it
+
+vm.recordLogs();
+raffle.performUpkeep();
+
+//vm.getrecorded the the recored logs from vm.record, 
+
+Vm.Log[] memory enteries = vm.getRecordedLogs();
+
+
+//go to the Vm.Log file for more info or ask ai
+
+//anything return from the getlogs will be in bytes32
+
+//to get our request id from the log
+
+//the first index are reserved for vrf so we start from 1
+bytes32 requestId = enteries[1].data[1];
+//console.log(requestId);
+
+
+Raffile.RaffileState s_raffleState = raffle.getRaffileState();
+
+assert(uint256(requestId) > 0);
+assert(s_raffleState == Raffile.RaffileState.Calculating);
+
+
+
+}
+
+
+
+
 
 
 
