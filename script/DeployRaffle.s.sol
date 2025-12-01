@@ -30,7 +30,7 @@ fundSubscription.fundSubscription(config.vrfCoordination, config.subscriptionId,
 
 
 
-vm.startBroadcast(/*config.account*/);
+vm.startBroadcast(config.account);
 Raffile raffile = new Raffile(
     config.entranceFee,
     config.interval,
@@ -45,7 +45,7 @@ AddCustomer  addCustomer = new AddCustomer();
 
 
 // we dont need to broadcast cuz in our consumer we alread have it
-addCustomer.addCustomer(address(raffile), config.vrfCoordination,config.subscriptionId);
+addCustomer.addCustomer(address(raffile), config.vrfCoordination,config.subscriptionId,config.account);
 
 return(raffile,helperConfig);
     } 

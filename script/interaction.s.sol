@@ -25,7 +25,7 @@ contract CreateSubscription is Script{
         address account
     ) public returns (uint256, address) {
         console.log("creating subscription on this chain id", block.chainid);
-        vm.startBroadcast(/*account*/);
+        vm.startBroadcast(account);
         uint256 subid = VRFCoordinatorV2_5Mock(vrfCoordinator)
             .createSubscription();
         vm.stopBroadcast();
@@ -62,7 +62,7 @@ console.log('On ChainId', block.chainid);
 
 if(block.chainid ==  LOCAL_CHAIN_ID){
 
-vm.startBroadcast(/*account*/);
+vm.startBroadcast(account);
 
 // now we call the cahinLink  mock fn that will help use fund the subcription in local
 VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(subscriptionId,FUND_AMOUNT);
@@ -74,7 +74,7 @@ vm.stopBroadcast();
     //it will check the send link balance then sendlink from it
     console.log(LinkToken(linkToken).balanceOf(msg.sender),'checking bal');
    
-    vm.startBroadcast(/*account*/);
+    vm.startBroadcast(account);
 
     LinkToken(linkToken).transferAndCall(vrfCoordinator,FUND_AMOUNT,abi.encode(subscriptionId));
     vm.stopBroadcast();
@@ -102,17 +102,18 @@ contract AddCustomer is Script{
  HelperConfig helperConfig = new HelperConfig();
 address vrfCoordinator = helperConfig.getConfig().vrfCoordination;
 uint256 subscribtionId = helperConfig.getConfig().subscriptionId;
+address account = helperConfig.getConfig().account;
+addCustomer(mostRecentlyDeployed,vrfCoordinator,subscribtionId,account);
 
-addCustomer(mostRecentlyDeployed,vrfCoordinator,subscribtionId);
 
     }
 
-    function addCustomer(address contractToAddtoVrf,address vrfCoordinator, uint256 subscribtionId)public{
+    function addCustomer(address contractToAddtoVrf,address vrfCoordinator, uint256 subscribtionId,address account)public{
         console.log('Adding customer  contract', contractToAddtoVrf);
         console.log('to vrf cordinator',vrfCoordinator);
         console.log('On Chain Id', block.chainid);
 
-        vm.startBroadcast();
+        vm.startBroadcast(account);
 
         // here is just like we are cliking the btn on ther website to add
 //this place add out address to the vrf contract

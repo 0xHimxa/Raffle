@@ -208,7 +208,18 @@ return (upKeepNeeded, '');
 
     function getPlayers(uint256 index) public view returns (address) {
         return s_players[index];
+
     }
+
+
+
+    function getLastTimeStamp() public view returns (uint256) {
+        return s_lastTimeStamp;
+    }
+
+function getRecentWinner() public view returns (address){
+    return s_recentWinner;
+}
 
 
 }
